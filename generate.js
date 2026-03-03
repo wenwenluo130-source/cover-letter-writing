@@ -108,14 +108,13 @@ export default async function handler(req, res) {
 
     if (!result) {
       console.log('Could not find result in any known format');
+      
+      // Return full response for debugging
       return res.status(500).json({ 
         error: 'Could not parse API response', 
-        debug: {
-          keys: Object.keys(data),
-          choices: data.choices,
-          hasChoices: !!data.choices,
-          firstChoice: data.choices ? data.choices[0] : null
-        }
+        raw_response: responseText,
+        parsed_keys: Object.keys(data),
+        parsed_data: data
       });
     }
 
