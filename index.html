@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cover Letter Studio</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --brand: #2563eb;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Arial, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .brand { font-weight: 700; font-size: 18px; color: var(--brand); }
+    .controls { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+    .api-badge { background: #f3f4f6; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+    
+    .layout { display: flex; min-height: calc(100vh - 56px); }
+    .sidebar { width: 220px; background: white; border-right: 1px solid var(--border); padding: 16px 12px; }
+    .step-nav { list-style: none; padding: 0; margin: 0; }
+    .step-item { padding: 12px 16px; margin: 4px 0; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; border: 1px solid transparent; }
+    .step-item:hover { background: #f9fafb; }
+    .step-item.active { background: #eff6ff; border-color: #dbeafe; color: var(--brand); font-weight: 600; }
+    .content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+    
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .panel-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 14px; resize: vertical; min-height: 100px; font-family: inherit; }
+    textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    input[type="text"], select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: var(--brand); }
+    
+    .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+    .upload-area:hover { border-color: var(--brand); background: #f8fafc; }
+    .upload-area p { margin: 0; color: var(--muted); font-size: 12px; }
+    
+    .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+    .btn:hover { background: #f9fafb; }
+    .btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+    .btn.primary:hover { background: #1d4ed8; }
+    .btn-group { display: flex; gap: 12px; margin-top: 16px; }
+    
+    .strategy-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .strategy-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .strategy-card h3 { margin: 0 0 12px 0; font-size: 14px; color: var(--muted); }
+    
+    .draft-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .draft-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .draft-panel h3 { margin: 0 0 12px 0; font-size: 14px; }
+    .draft-panel textarea { min-height: 280px; }
+    
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+    .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .metric-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .metric-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .metric-fill { height: 100%; background: var(--brand); border-radius: 4px; transition: width 0.3s; }
+    .metric-value { font-size: 14px; font-weight: 600; margin-top: 6px; }
+    
+    .red-flags { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin-top: 12px; }
+    .red-flag-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--danger); padding: 6px 0; }
+    .red-flag-item::before { content: "⚠"; margin-right: 4px; }
+    .red-flag-item.success { color: var(--success); }
+    .red-flag-item.success::before { content: "✓"; }
+    
+    .critique-list { display: flex; flex-direction: column; gap: 12px; }
+    .critique-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; gap: 12px; }
+    .critique-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .critique-badge.red { background: #fef2f2; }
+    .critique-badge.orange { background: #fff7ed; }
+    .critique-badge.blue { background: #eff6ff; }
+    .critique-content { flex: 1; }
+    .critique-content h4 { margin: 0 0 6px 0; font-size: 14px; }
+    .critique-content p { margin: 0 0 10px 0; font-size: 13px; color: var(--muted); }
+    .critique-replacement { background: #f9fafb; padding: 10px; border-radius: 6px; font-size: 13px; }
+    .critique-actions { display: flex; gap: 8px; margin-top: 10px; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 24px; width: 480px; max-width: 90vw; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    .modal h3 { margin: 0 0 16px 0; font-size: 18px; }
+    .modal-step { margin-bottom: 16px; }
+    .modal-step-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+    .modal-options { display: flex; gap: 12px; flex-wrap: wrap; }
+    .modal-options label { display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+    
+    .alignment-summary { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-top: 16px; }
+    .alignment-summary h4 { margin: 0 0 10px 0; font-size: 14px; color: #166534; }
+    .alignment-summary ol { margin: 0; padding-left: 20px; font-size: 13px; color: #166534; }
+    
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.primary:disabled { background: #93c5fd; }
+    
+    .tip { font-size: 12px; color: var(--muted); margin-top: 8px; }
+    
+    @media (max-width: 1024px) {
+      .grid-3, .strategy-grid { grid-template-columns: 1fr 1fr; }
+      .draft-container { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+      .grid-3, .grid-2, .strategy-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Cover Letter Studio</div>
+    <div class="controls">
+      <span class="api-badge" id="apiStatus">🟢 AI Ready</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <ul class="step-nav">
+        <li class="step-item active" data-step="0" onclick="goToStep(0)">Step 0: Input Prep</li>
+        <li class="step-item" data-step="1" onclick="goToStep(1)">Step 1: Strategy</li>
+        <li class="step-item" data-step="2" onclick="goToStep(2)">Step 2: Draft & Fit</li>
+        <li class="step-item" data-step="3" onclick="goToStep(3)">Step 3: Review</li>
+        <li class="step-item" data-step="4" onclick="goToStep(4)">Step 4: Export</li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <section class="section active" id="section-0">
+        <h2 class="section-title">Step 0: Input Preparation</h2>
+        
+        <div class="grid-3">
+          <div class="panel">
+            <div class="panel-title">Target JD</div>
+            <textarea id="jdText" placeholder="Paste job description here..."></textarea>
+            <div class="upload-area" onclick="document.getElementById('jdFile').click()">
+              <p>📁 Drag & drop or click to upload</p>
+              <input type="file" id="jdFile" accept=".json,.csv,.html,.txt" style="display:none" />
+            </div>
+          </div>
+          
+          <div class="panel">
+            <div class="panel-title">Experience Document</div>
+            <textarea id="expText" placeholder="Paste your work experience..."></textarea>
+            <div class="upload-area" onclick="document.getElementById('expFile').click()">
+              <p>📁 Drag & drop or click to upload</p>
+              <input type="file" id="expFile" accept=".json,.csv,.html,.txt" style="display:none" />
+            </div>
+          </div>
+          
+          <div class="panel">
+            <div class="panel-title">Optimized Resume</div>
+            <textarea id="resumeText" placeholder="Paste your resume..."></textarea>
+            <div class="upload-area" onclick="document.getElementById('resumeFile').click()">
+              <p>📁 Drag & drop or click to upload</p>
+              <input type="file" id="resumeFile" accept=".json,.csv,.html,.txt" style="display:none" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="panel">
+            <div class="panel-title">Company Culture Notes (Optional)</div>
+            <textarea id="cultureNotes" placeholder="Notes about company values, news..." style="min-height: 80px;"></textarea>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Hiring Manager Name (Optional)</div>
+            <input type="text" id="managerName" placeholder="e.g., Jane Doe" />
+            <p class="tip">Will be auto-redacted if not provided</p>
+          </div>
+        </div>
+        
+        <div class="panel" style="margin-top: 16px;">
+          <div class="panel-title">Special Requirements (Optional)</div>
+          <textarea id="specialReq" placeholder="Any specific requirements to address..." style="min-height: 60px;"></textarea>
+        </div>
+        
+        <p class="tip">💡 Tip: Structured information improves matching accuracy</p>
+        <p class="tip" style="color: var(--brand);">🤖 AI Powered by MiniMax API (Serverless)</p>
+        
+        <div class="nav-buttons">
+          <div></div>
+          <button class="btn primary" onclick="goToStep(1)">Next: Strategy →</button>
+        </div>
+      </section>
+
+      <section class="section" id="section-1">
+        <h2 class="section-title">Step 1: Strategic Alignment</h2>
+        
+        <div class="strategy-grid">
+          <div class="strategy-card">
+            <h3>🎯 Motivation Points</h3>
+            <textarea id="motivation1" placeholder="Point 1: Core intersection with JD"></textarea>
+            <textarea id="motivation2" placeholder="Point 2: Key strength alignment" style="margin-top: 8px;"></textarea>
+            <textarea id="motivation3" placeholder="Point 3: Unique qualification" style="margin-top: 8px;"></textarea>
+            <button class="btn" style="margin-top: 10px; width: 100%;" onclick="generateMotivationPoints()">🤖 Generate with AI</button>
+          </div>
+          
+          <div class="strategy-card">
+            <h3>💎 Unique Value Proposition</h3>
+            <textarea id="uvp" placeholder="What specific problem can you solve for them?" style="min-height: 140px;"></textarea>
+            <button class="btn" style="margin-top: 10px; width: 100%;" onclick="generateUVP()">🤖 Generate with AI</button>
+          </div>
+          
+          <div class="strategy-card">
+            <h3>📖 Narrative Arc</h3>
+            <label style="font-weight: normal; margin: 8px 0;">
+              <input type="radio" name="arc" value="problem" checked /> Problem → Solution
+            </label>
+            <label style="font-weight: normal; margin: 8px 0;">
+              <input type="radio" name="arc" value="growth" /> Career Growth Fit
+            </label>
+            <label style="font-weight: normal; margin: 8px 0;">
+              <input type="radio" name="arc" value="value" /> Value Alignment
+            </label>
+            <label style="font-weight: normal; margin: 8px 0;">
+              <input type="checkbox" id="arcMixed" /> Allow Mixed Approach
+            </label>
+          </div>
+          
+          <div class="strategy-card">
+            <h3>🎨 Tone & Level</h3>
+            <label>Industry Tone</label>
+            <select id="toneSelect" style="margin-bottom: 12px;">
+              <option value="conservative">Conservative</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="creative">Creative</option>
+            </select>
+            <label>Experience Level</label>
+            <select id="levelSelect">
+              <option value="junior">Junior</option>
+              <option value="mid" selected>Mid-Level</option>
+              <option value="senior">Senior</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="alignment-summary">
+          <h4>📋 Alignment Summary</h4>
+          <ol id="alignmentList">
+            <li>3 core motivation points mapped to JD requirements</li>
+            <li>Unique Value Proposition defined</li>
+            <li>Narrative arc selected</li>
+          </ol>
+        </div>
+        
+        <div class="nav-buttons">
+          <button class="btn" onclick="goToStep(0)">← Previous</button>
+          <button class="btn primary" onclick="goToStep(2)">Next: Draft & Fit →</button>
+        </div>
+      </section>
+
+      <section class="section" id="section-2">
+        <h2 class="section-title">Step 2: Draft & Fit Check</h2>
+        
+        <div class="draft-container">
+          <div class="draft-panel">
+            <h3>📝 Draft (English)</h3>
+            <textarea id="draftEnglish" placeholder="Your cover letter will appear here..."></textarea>
+          </div>
+          <div class="draft-panel">
+            <h3>📝 Draft (Chinese) - Optional</h3>
+            <textarea id="draftChinese" placeholder="中文版本..."></textarea>
+          </div>
+        </div>
+        
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">JD Keyword Coverage</div>
+            <div class="metric-bar"><div class="metric-fill" id="kwFill" style="width: 0%"></div></div>
+            <div class="metric-value" id="kwValue">0%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Hard Skills Evidence</div>
+            <div class="metric-bar"><div class="metric-fill" id="hsFill" style="width: 0%"></div></div>
+            <div class="metric-value" id="hsValue">0%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Culture Signals</div>
+            <div class="metric-bar"><div class="metric-fill" id="csFill" style="width: 0%"></div></div>
+            <div class="metric-value" id="csValue">0</div>
+          </div>
+        </div>
+        
+        <div class="red-flags" id="redFlags">
+          <div class="red-flag-item success">✓ No critical issues detected</div>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn primary" onclick="generateDraft()">🤖 Generate with AI</button>
+          <button class="btn" onclick="switchLanguage()">🌐 Language Switch</button>
+        </div>
+        
+        <div class="nav-buttons">
+          <button class="btn" onclick="goToStep(1)">← Previous</button>
+          <button class="btn primary" onclick="goToStep(3)">Next: Review →</button>
+        </div>
+      </section>
+
+      <section class="section" id="section-3">
+        <h2 class="section-title">Step 3: Diagnostic Review</h2>
+        
+        <div class="critique-list" id="critiqueList">
+          <div class="critique-item">
+            <div class="critique-badge red">🔴</div>
+            <div class="critique-content">
+              <h4>Content Error</h4>
+              <p>Second paragraph claims leadership of a team not found in Experience Document.</p>
+              <div class="critique-replacement">Consider revising to: "I have led cross-functional initiatives that delivered measurable outcomes..."</div>
+              <div class="critique-actions">
+                <button class="btn" onclick="applyFix(this)">Apply Fix</button>
+                <button class="btn" onclick="dismissFix(this)">Dismiss</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="critique-item">
+            <div class="critique-badge orange">🟠</div>
+            <div class="critique-content">
+              <h4>Strategy Suggestion</h4>
+              <p>The opening could be more specific to the company.</p>
+              <div class="critique-replacement">Try mentioning a specific project, news, or initiative from the company.</div>
+              <div class="critique-actions">
+                <button class="btn" onclick="applyFix(this)">Apply Fix</button>
+                <button class="btn" onclick="dismissFix(this)">Dismiss</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="critique-item">
+            <div class="critique-badge blue">🔵</div>
+            <div class="critique-content">
+              <h4>Optimization Tip</h4>
+              <p>Consider adding more quantifiable results in the proof section.</p>
+              <div class="critique-replacement">Include specific metrics like percentages, numbers, or outcomes.</div>
+              <div class="critique-actions">
+                <button class="btn" onclick="applyFix(this)">Apply Fix</button>
+                <button class="btn" onclick="dismissFix(this)">Dismiss</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn primary" onclick="goToStep(2)">↺ Apply & Iterate</button>
+          <button class="btn primary" onclick="goToStep(4)">Final Polish →</button>
+        </div>
+      </section>
+
+      <section class="section" id="section-4">
+        <h2 class="section-title">Step 4: Polish & Export</h2>
+        
+        <div class="panel">
+          <div class="panel-title">ATS Ready Text (Plain)</div>
+          <textarea id="finalText" placeholder="Your polished cover letter will appear here..." style="min-height: 300px;"></textarea>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn primary" onclick="copyFinal()">📋 Copy to Clipboard</button>
+          <button class="btn" onclick="openExportWizard()">🧙 Open Export Wizard</button>
+        </div>
+        
+        <div class="nav-buttons">
+          <button class="btn" onclick="goToStep(3)">← Previous</button>
+          <div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal">
+      <h3>🧙 Export Wizard</h3>
+      
+      <div class="modal-step">
+        <div class="modal-step-title">Step 1: Pick Format</div>
+        <div class="modal-options">
+          <label><input type="radio" name="format" value="txt" checked /> TXT</label>
+          <label><input type="radio" name="format" value="html" /> HTML</label>
+          <label><input type="radio" name="format" value="md" /> Markdown</label>
+        </div>
+      </div>
+      
+      <div class="modal-step">
+        <div class="modal-step-title">Step 2: Language</div>
+        <div class="modal-options">
+          <label><input type="radio" name="lang" value="en" checked /> English</label>
+          <label><input type="radio" name="lang" value="zh" /> 中文</label>
+        </div>
+      </div>
+      
+      <div class="modal-step">
+        <div class="modal-step-title">Step 3: Output Preferences</div>
+        <div class="modal-options">
+          <label><input type="checkbox" id="atsFriendly" checked /> ATS-ready plain text</label>
+          <label><input type="checkbox" id="includeSubject" /> Include subject line</label>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn" onclick="closeExportWizard()">Cancel</button>
+        <button class="btn" onclick="exportCopy()">📋 Copy</button>
+        <button class="btn primary" onclick="exportDownload()">💾 Download</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let apiUsed = 0;
+    let currentStep = 0;
+    
+    function goToStep(step) {
+      currentStep = step;
+      
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section-' + step).classList.add('active');
+      
+      document.querySelectorAll('.step-item').forEach(el => {
+        const elStep = parseInt(el.getAttribute('data-step'));
+        if (elStep === step) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+      
+      if (step === 4) {
+        document.getElementById('finalText').value = document.getElementById('draftEnglish').value;
+      }
+    }
+    
+    function setupFileUpload(inputId, textAreaId) {
+      document.getElementById(inputId).addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById(textAreaId).value = e.target.result;
+          };
+          reader.readAsText(file);
+        }
+      });
+    }
+    
+    setupFileUpload('jdFile', 'jdText');
+    setupFileUpload('expFile', 'expText');
+    setupFileUpload('resumeFile', 'resumeText');
+    
+    async function callAIAPI(prompt, systemPrompt) {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          systemPrompt: systemPrompt
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'API request failed');
+      }
+      
+      const data = await response.json();
+      return data.result;
+    }
+    
+    function generateTemplateBasedDraft() {
+      const jd = document.getElementById('jdText').value;
+      const exp = document.getElementById('expText').value;
+      const resume = document.getElementById('resumeText').value;
+      const managerName = document.getElementById('managerName').value.trim();
+      const tone = document.getElementById('toneSelect').value;
+      const level = document.getElementById('levelSelect').value;
+      
+      const jobTitle = extractJobTitle(jd);
+      const companyName = extractCompanyName(jd);
+      const skills = extractSkills(jd);
+      const expPoints = extractExperiencePoints(exp);
+      
+      const greeting = managerName ? `Dear ${managerName},` : 'Dear Hiring Manager,';
+      
+      let hook = `${greeting}\n\nI am excited to apply for the ${jobTitle} position at ${companyName}. Having followed your company's innovative work in the industry, I am drawn to the opportunity to contribute my expertise to your team.\n\nThe role's focus on ${extractKeyResponsibilities(jd)} aligns perfectly with my professional background and career aspirations.`;
+      
+      const levelModifier = level === 'senior' ? 'Successfully led' : level === 'junior' ? 'Contributed to' : 'Played a key role in';
+      
+      let proof = `\n\nThroughout my career, ${levelModifier} numerous initiatives that demonstrate my ability to deliver measurable results.\n\n`;
+      
+      if (expPoints.length > 0) {
+        proof += expPoints.map((point, i) => `• ${point.trim()}`).join('\n');
+        proof += '\n\n';
+      }
+      
+      proof += `My technical proficiency in ${skills.slice(0, 5).join(', ')} has enabled me to drive data-informed decisions and stakeholder alignment across cross-functional teams.`;
+      
+      let bridge = `\n\nWhat particularly resonates with me about ${companyName} is your commitment to ${extractCompanyValue(jd)}. I have researched your recent initiatives and believe my background in building scalable solutions would enable me to make immediate contributions to your strategic objectives.\n\nMy experience across multiple industries has equipped me with a versatile skill set and a collaborative approach that I believe would thrive in your organizational culture.`;
+      
+      let ask = `\n\nI would welcome the opportunity to discuss how my background and skills can contribute to your team. Could we schedule a brief call this week to explore this opportunity further?\n\nSincerely,\n[Your Name]`;
+      
+      return hook + proof + bridge + ask;
+    }
+    
+    function extractJobTitle(jd) {
+      const match = jd.match(/(?:position|role|job|title)[:\s]+([A-Za-z\s]+?)(?:\n|,|$)/i);
+      return match ? match[1].trim() : 'this position';
+    }
+    
+    function extractCompanyName(jd) {
+      const match = jd.match(/(?:at|with|for)\s+([A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)?)/i);
+      return match ? match[1].trim() : 'your company';
+    }
+    
+    function extractSkills(jd) {
+      const skillKeywords = ['python', 'java', 'sql', 'javascript', 'typescript', 'aws', 'docker', 'kubernetes', 'react', 'node', 'python', 'machine learning', 'data analysis', 'project management', 'agile', 'scrum', 'leadership', 'communication'];
+      const jdLower = jd.toLowerCase();
+      return skillKeywords.filter(s => jdLower.includes(s));
+    }
+    
+    function extractExperiencePoints(exp) {
+      const lines = exp.split(/[\n•·]/).filter(l => l.trim().length > 20);
+      return lines.slice(0, 4);
+    }
+    
+    function extractKeyResponsibilities(jd) {
+      const responsibilities = jd.match(/responsible for|leading|managing|developing|implementing|creating|designing|analyzing/gi);
+      if (responsibilities && responsibilities.length > 0) {
+        return responsibilities.slice(0, 3).join(', ');
+      }
+      return 'driving innovation and delivering results';
+    }
+    
+    function extractCompanyValue(jd) {
+      const values = ['innovation', 'customer success', 'excellence', 'integrity', 'collaboration', 'growth'];
+      const jdLower = jd.toLowerCase();
+      for (const v of values) {
+        if (jdLower.includes(v)) return v;
+      }
+      return 'innovation and growth';
+    }
+    
+    function translateToChinese(en) {
+      if (!en) return '';
+      return en
+        .replace(/Dear Hiring Manager/gi, '尊敬的招聘经理')
+        .replace(/Dear ([A-Z][a-z]+ [A-Z][a-z]+)/gi, '尊敬的$1')
+        .replace(/I am excited to apply/gi, '我很高兴申请')
+        .replace(/position at/gi, '在贵司')
+        .replace(/company/gi, '公司')
+        .replace(/experience/gi, '经验')
+        .replace(/skills/gi, '技能')
+        .replace(/background/gi, '背景')
+        .replace(/contribute/gi, '贡献')
+        .replace(/team/gi, '团队')
+        .replace(/Sincerely/gi, '此致')
+        .replace(/Best regards/gi, '此致敬礼');
+    }
+    
+    let isGeneratingMP = false;
+    async function generateMotivationPoints() {
+      if (isGeneratingMP) return;
+      
+      const jd = document.getElementById('jdText').value;
+      const exp = document.getElementById('expText').value;
+      const resume = document.getElementById('resumeText').value;
+      
+      if (!jd.trim()) {
+        alert('Please enter a Job Description first!');
+        return;
+      }
+      
+      isGeneratingMP = true;
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '🤖 AI Generating...';
+      btn.disabled = true;
+      
+      const prompt = `Based on the following Job Description, Experience, and Resume, identify 3 core motivation points that represent the intersection between the candidate's strengths and the company's needs.
+
+JOB DESCRIPTION:
+${jd}
+
+${exp ? 'EXPERIENCE:\n' + exp : ''}
+${resume ? '\nRESUME:\n' + resume : ''}
+
+OUTPUT FORMAT:
+Provide exactly 3 motivation points in this format:
+1. [First motivation point - core intersection]
+2. [Second motivation point - key strength alignment]
+3. [Third motivation point - unique qualification]`;
+
+      try {
+        const result = await callAIAPI(prompt, 'You are a career advisor helping to identify key motivation points between a candidate and job requirements.');
+        
+        const lines = result.split('\n').filter(l => l.trim());
+        const points = [];
+        
+        lines.forEach(line => {
+          const cleaned = line.replace(/^[0-9]+[.)]\s*[-•]\s*/, '').trim();
+          if (cleaned && cleaned.length > 10) {
+            points.push(cleaned);
+          }
+        });
+        
+        if (points[0]) document.getElementById('motivation1').value = points[0];
+        if (points[1]) document.getElementById('motivation2').value = points[1];
+        if (points[2]) document.getElementById('motivation3').value = points[2];
+        
+        if (points.length === 0) {
+          document.getElementById('motivation1').value = result;
+        }
+        
+        apiUsed++;
+        document.getElementById('apiStatus').textContent = `🟢 API Used: ${apiUsed}`;
+        
+      } catch (error) {
+        console.error('Error generating motivation points:', error);
+        alert('Error: ' + error.message + '\n\nFalling back to template mode.');
+        
+        const skills = extractSkills(jd);
+        const expPoints = extractExperiencePoints(exp);
+        const fallback = `1. My experience in ${skills.slice(0, 3).join(', ')} directly aligns with the key requirements in this position.
+2. My track record of delivering measurable results through ${expPoints.length > 0 ? expPoints[0].substring(0, 50) : 'professional achievements'} demonstrates my ability to contribute immediately.
+3. My passion for continuous learning and professional growth makes me confident I can exceed expectations in this role.`;
+        
+        document.getElementById('motivation1').value = fallback.split('\n')[0];
+        document.getElementById('motivation2').value = fallback.split('\n')[1];
+        document.getElementById('motivation3').value = fallback.split('\n')[2];
+      } finally {
+        isGeneratingMP = false;
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+    
+    let isGeneratingUVP = false;
+    async function generateUVP() {
+      if (isGeneratingUVP) return;
+      
+      const jd = document.getElementById('jdText').value;
+      const exp = document.getElementById('expText').value;
+      const resume = document.getElementById('resumeText').value;
+      const level = document.getElementById('levelSelect').value;
+      
+      if (!jd.trim()) {
+        alert('Please enter a Job Description first!');
+        return;
+      }
+      
+      isGeneratingUVP = true;
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '🤖 AI Generating...';
+      btn.disabled = true;
+      
+      const prompt = `Based on the following Job Description, Experience, and Resume, create a compelling Unique Value Proposition (UVP).
+
+JOB DESCRIPTION:
+${jd}
+
+${exp ? 'EXPERIENCE:\n' + exp : ''}
+${resume ? '\nRESUME:\n' + resume : ''}
+
+Candidate Level: ${level}
+
+OUTPUT:
+Write a concise UVP (2-3 sentences) that identifies what specific problem the candidate can solve for this company.`;
+
+      try {
+        const result = await callAIAPI(prompt, 'You are a career advisor helping to create compelling Unique Value Propositions.');
+        document.getElementById('uvp').value = result;
+        
+        apiUsed++;
+        document.getElementById('apiStatus').textContent = `🟢 API Used: ${apiUsed}`;
+        
+      } catch (error) {
+        console.error('Error generating UVP:', error);
+        alert('Error: ' + error.message + '\n\nFalling back to template mode.');
+        
+        const skills = extractSkills(jd);
+        document.getElementById('uvp').value = `I bring a unique combination of ${skills.slice(0, 3).join(', ')} skills and a proven track record of delivering measurable results. My background enables me to immediately contribute to your team's objectives while driving innovation and continuous improvement.`;
+      } finally {
+        isGeneratingUVP = false;
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+    
+    let isGenerating = false;
+    
+    async function generateDraft() {
+      if (isGenerating) return;
+      
+      const jd = document.getElementById('jdText').value;
+      const exp = document.getElementById('expText').value;
+      const resume = document.getElementById('resumeText').value;
+      const managerName = document.getElementById('managerName').value.trim();
+      const tone = document.getElementById('toneSelect').value;
+      const level = document.getElementById('levelSelect').value;
+      
+      if (!jd.trim()) {
+        alert('Please enter a Job Description first!');
+        return;
+      }
+      
+      isGenerating = true;
+      const btn = document.querySelector('#section-2 .btn.primary');
+      const originalText = btn.textContent;
+      btn.textContent = '🤖 AI Generating...';
+      btn.disabled = true;
+      
+      document.getElementById('draftEnglish').value = '🤖 Generating cover letter with MiniMax API...\n\n';
+      document.getElementById('draftChinese').value = '';
+      
+      const prompt = `Generate a professional cover letter (400-500 words, 4 paragraphs) based on the following information:
+
+JOB DESCRIPTION:
+${jd}
+
+${exp ? 'EXPERIENCE:\n' + exp : ''}
+${resume ? '\nRESUME:\n' + resume : ''}
+
+REQUIREMENTS:
+- Language: English
+- Tone: ${tone}
+- Experience Level: ${level}
+- Structure: Hook → Proof → Bridge → Ask
+${managerName ? '- Greeting: Use hiring manager name "' + managerName + '"' : ''}
+
+Generate the cover letter now. Start directly with the letter, no preamble.`;
+
+      try {
+        let draftText = await callAIAPI(prompt, 'You are a professional cover letter writer.');
+        
+        if (!draftText || draftText.trim().length < 100) {
+          throw new Error('AI response too short');
+        }
+        
+        document.getElementById('draftEnglish').value = draftText;
+        
+        let zhResult = '';
+        const zhPrompt = `Translate the following cover letter to Chinese (600-800 characters, maintain the same structure and tone):
+
+${draftText}`;
+        
+        zhResult = await callAIAPI(zhPrompt, 'You are a professional translator.');
+        
+        document.getElementById('draftChinese').value = zhResult;
+        
+        updateFitMetrics(draftText, jd);
+        
+        apiUsed++;
+        document.getElementById('apiStatus').textContent = `🟢 API Used: ${apiUsed}`;
+        
+      } catch (error) {
+        console.error('AI Generation Error:', error);
+        alert('Error: ' + error.message + '\n\nUsing template generation instead.');
+        
+        const templateDraft = generateTemplateBasedDraft();
+        document.getElementById('draftEnglish').value = templateDraft;
+        document.getElementById('draftChinese').value = translateToChinese(templateDraft);
+        updateFitMetrics(templateDraft, jd);
+      } finally {
+        isGenerating = false;
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+    
+    function updateFitMetrics(draft, jd) {
+      const draftLower = draft.toLowerCase();
+      const jdLower = jd.toLowerCase();
+      
+      const jdTokens = jdLower.match(/\b[a-z]{4,}\b/g) || [];
+      const uniqueTokens = [...new Set(jdTokens)];
+      let matched = 0;
+      uniqueTokens.forEach(t => { if (draftLower.includes(t)) matched++; });
+      const kwPercent = uniqueTokens.length > 0 ? Math.round((matched / uniqueTokens.length) * 100) : 0;
+      
+      document.getElementById('kwFill').style.width = kwPercent + '%';
+      document.getElementById('kwValue').textContent = kwPercent + '%';
+      
+      const hardSkills = ['python', 'java', 'sql', 'javascript', 'aws', 'docker', 'react', 'node', 'data', 'analytics', 'leadership', 'management', 'agile'];
+      let skillMatches = 0;
+      hardSkills.forEach(s => { if (draftLower.includes(s)) skillMatches++; });
+      const hsPercent = Math.round((skillMatches / hardSkills.length) * 100);
+      
+      document.getElementById('hsFill').style.width = hsPercent + '%';
+      document.getElementById('hsValue').textContent = hsPercent + '%';
+      
+      const cultureWords = ['innovation', 'collaboration', 'customer', 'growth', 'integrity', 'excellence'];
+      let cultureMatches = 0;
+      cultureWords.forEach(w => { if (draftLower.includes(w)) cultureMatches++; });
+      
+      document.getElementById('csFill').style.width = Math.min(100, cultureMatches * 17) + '%';
+      document.getElementById('csValue').textContent = cultureMatches + ' signals';
+      
+      const redFlags = document.getElementById('redFlags');
+      let flagHTML = '';
+      
+      if (!document.getElementById('managerName').value.trim()) {
+        flagHTML += '<div class="red-flag-item">Missing Hiring Manager name - consider adding for personalization</div>';
+      }
+      
+      if (draftLower.includes('salary') || draftLower.includes('compensation') || draftLower.includes('expect')) {
+        flagHTML += '<div class="red-flag-item">Salary expectations mentioned - remove unless JD requires</div>';
+      }
+      
+      if (flagHTML === '') {
+        flagHTML = '<div class="red-flag-item success">✓ No critical issues detected</div>';
+      }
+      
+      redFlags.innerHTML = flagHTML;
+    }
+    
+    function switchLanguage() {
+      const en = document.getElementById('draftEnglish').value;
+      if (en) {
+        document.getElementById('draftChinese').value = translateToChinese(en);
+      }
+    }
+    
+    function applyFix(btn) {
+      const replacement = btn.parentElement.querySelector('.critique-replacement').textContent;
+      const draft = document.getElementById('draftEnglish');
+      draft.value += '\n\n' + replacement;
+      btn.closest('.critique-item').style.display = 'none';
+    }
+    
+    function dismissFix(btn) {
+      btn.closest('.critique-item').style.display = 'none';
+    }
+    
+    function copyFinal() {
+      const text = document.getElementById('finalText').value;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+      });
+    }
+    
+    function openExportWizard() {
+      document.getElementById('exportModal').classList.add('active');
+    }
+    
+    function closeExportWizard() {
+      document.getElementById('exportModal').classList.remove('active');
+    }
+    
+    function exportCopy() {
+      let text = document.getElementById('finalText').value;
+      const lang = document.querySelector('input[name="lang"]:checked').value;
+      const includeSubject = document.getElementById('includeSubject').checked;
+      
+      if (lang === 'zh') {
+        text = translateToChinese(text);
+      }
+      
+      if (includeSubject) {
+        text = `Subject: Application for [Position Title]\n\n` + text;
+      }
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+        closeExportWizard();
+      });
+    }
+    
+    function exportDownload() {
+      let text = document.getElementById('finalText').value;
+      const format = document.querySelector('input[name="format"]:checked').value;
+      const lang = document.querySelector('input[name="lang"]:checked').value;
+      const includeSubject = document.getElementById('includeSubject').checked;
+      
+      if (lang === 'zh') {
+        text = translateToChinese(text);
+      }
+      
+      if (includeSubject) {
+        text = `Subject: Application for [Position Title]\n\n` + text;
+      }
+      
+      let content = text;
+      let filename = 'cover-letter';
+      let type = 'text/plain';
+      
+      if (format === 'html') {
+        content = `<html><body><pre>${text}</pre></body></html>`;
+        filename += '.html';
+        type = 'text/html';
+      } else if (format === 'md') {
+        filename += '.md';
+        type = 'text/markdown';
+      } else {
+        filename += '.txt';
+      }
+      
+      const blob = new Blob([content], { type });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      
+      closeExportWizard();
+    }
+  </script>
+</body>
+</html>
